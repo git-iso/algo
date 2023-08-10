@@ -8,13 +8,14 @@
 
 using namespace std;
 
+// Calculate Euclidean norm
 vector<vector<float>> normalize(const vector<vector<float>>&matrix){
 
     int rows = matrix.size();
     int columns = matrix[0].size();
     vector<vector<float>> nMatrix(rows, vector<float>(columns));
 
-    for (int j = 0; j < columns; j++){ // Find Euclidean norm for columns
+    for (int j = 0; j < columns; j++){ 
 
         double nColumn = 0;
 
@@ -38,6 +39,7 @@ vector<vector<float>> normalize(const vector<vector<float>>&matrix){
 
 }
 
+//Pairwise AHP normalization
 vector<vector<float>> normalizeAHP(const vector<vector<float>>&matrix){
 
     int rows = matrix.size();
@@ -45,7 +47,7 @@ vector<vector<float>> normalizeAHP(const vector<vector<float>>&matrix){
    
     vector<vector<float>> nMatrix(rows, vector<float>(columns));
 
-    for (int j = 0; j < columns; j++){ // Find Euclidean norm for columns
+    for (int j = 0; j < columns; j++){ // Find norm for columns
 
         double nColumn = 0;
 
@@ -67,7 +69,7 @@ vector<vector<float>> normalizeAHP(const vector<vector<float>>&matrix){
 
 }
 
-
+//AHP weights calculation
 vector<float> computeWeights(const vector<vector<float>>&matrix, const int &m){
 
     int rows = matrix.size();
@@ -88,6 +90,7 @@ vector<float> computeWeights(const vector<vector<float>>&matrix, const int &m){
 
 }
 
+//TOPSIS weights calculation
 vector<vector<float>> weightMatrix(const vector<vector<float>>&matrix, const vector<float>&weights){
 
     int rows = matrix.size();
@@ -107,6 +110,7 @@ vector<vector<float>> weightMatrix(const vector<vector<float>>&matrix, const vec
 
 }
 
+//Calculate positive ideals
 vector<float> positiveIdeal(const vector<vector<float>>&matrix, const vector<float>&weights){
 
     int columns = matrix[0].size();
@@ -126,6 +130,7 @@ vector<float> positiveIdeal(const vector<vector<float>>&matrix, const vector<flo
 
 }
 
+//Calculate negative ideals
 vector<float> negativeIdeal(const vector<vector<float>>&matrix, const vector<float>&weights){
 
     int columns = matrix[0].size();
@@ -145,6 +150,7 @@ vector<float> negativeIdeal(const vector<vector<float>>&matrix, const vector<flo
 
 }
 
+//Find Euclidean Distance between positive and negative ideals
 vector<float> euclideanDistance(const vector<vector<float>>&matrix, const vector<float> &ideal){
 
     int rows = matrix.size();
@@ -166,6 +172,7 @@ vector<float> euclideanDistance(const vector<vector<float>>&matrix, const vector
 
 }
 
+//Find relativep proximityo of networks to positive and negative ideals
 vector<float> relativeProxmity(const vector<float> &eDistancePositiveIdeal, const vector<float> &eDistanceNegativeIdeal){
 
     int size = eDistancePositiveIdeal.size();
@@ -181,6 +188,7 @@ vector<float> relativeProxmity(const vector<float> &eDistancePositiveIdeal, cons
 
 }
 
+//Find ideal network
 int idealNetwork(const vector<float>&proximity){
 
     return distance(proximity.begin(), max_element(proximity.begin(), proximity.end()));
