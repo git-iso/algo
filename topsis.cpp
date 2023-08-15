@@ -94,7 +94,7 @@ public:
 
     }
 
-    //Find relativep proximityo of networks to positive and negative ideals
+    //Find relative proximity of networks to positive and negative ideals
     vector<float> relativeProxmity(const vector<float> &eDistancePositiveIdeal, const vector<float> &eDistanceNegativeIdeal){
 
         int size = eDistancePositiveIdeal.size();
