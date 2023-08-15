@@ -1,253 +1,117 @@
+#include <cstdio>
+#include <fstream>
 #include <iostream>
 #include <iterator>
+#include <sstream>
+#include <string>
 #include <vector>
 #include <cmath>
 #include <limits>
 #include <numeric>
 #include <algorithm>
+#include <bits/stdc++.h>
+#include "ahp.cpp"
+#include "topsis.cpp"
 
 using namespace std;
 
-// Calculate Euclidean norm
-vector<vector<float>> normalize(const vector<vector<float>>&matrix){
-
-    int rows = matrix.size();
-    int columns = matrix[0].size();
-    vector<vector<float>> nMatrix(rows, vector<float>(columns));
-
-    for (int j = 0; j < columns; j++){ 
-
-        double nColumn = 0;
-
-        for (auto row: matrix){
-
-            nColumn += row[j] * row[j];
-
-        }
-
-        nColumn = sqrt(nColumn);
-
-        for (int i = 0; i < rows; i++){
-
-            nMatrix[i][j] = matrix[i][j] / nColumn;
-
-        }
-
-    }
-
-    return nMatrix;
-
-}
-
-//Pairwise AHP normalization
-vector<vector<float>> normalizeAHP(const vector<vector<float>>&matrix){
-
-    int rows = matrix.size();
-    int columns = matrix[0].size();
-   
-    vector<vector<float>> nMatrix(rows, vector<float>(columns));
-
-    for (int j = 0; j < columns; j++){ // Find norm for columns
-
-        double nColumn = 0;
-
-        for (auto row: matrix){
-
-            nColumn += row[j];
-
-        }
-
-        for (int i = 0; i < rows; i++){
-
-            nMatrix[i][j] = matrix[i][j] / nColumn;
-
-        }
-
-    }
-
-    return nMatrix;
-
-}
-
-//AHP weights calculation
-vector<float> computeWeights(const vector<vector<float>>&matrix, const int &m){
-
-    int rows = matrix.size();
-    int columns = matrix[0].size();
-    vector<float> wMatrix(columns);
-
-    for (int i = 0; i < rows; i++){
-        
-        for (int j = 0; j < columns; j++){
-
-            wMatrix[j] = matrix[i][j] / m;
-
-        }
-    }
-
-    return wMatrix;
-
-
-}
-
-//TOPSIS weights calculation
-vector<vector<float>> weightMatrix(const vector<vector<float>>&matrix, const vector<float>&weights){
-
-    int rows = matrix.size();
-    int columns = matrix[0].size();
-    vector<vector<float>> wMatrix(rows, vector<float>(columns));
-
-    for (int i = 0; i < rows; i++){
-        
-        for (int j = 0; j < columns; j++){
-
-            wMatrix[i][j] = matrix[i][j] * weights[j];
-
-        }
-    }
-
-    return wMatrix;
-
-}
-
-//Calculate positive ideals
-vector<float> positiveIdeal(const vector<vector<float>>&matrix, const vector<float>&weights){
-
-    int columns = matrix[0].size();
-    vector<float> ideal(columns, numeric_limits<float>::min());
-
-    for (auto row: matrix){
-
-        for (int j = 0; j < columns; j++){
-
-            ideal[j] = max(ideal[j],row[j]);
-
-        }
-
-    }
-
-    return ideal;
-
-}
-
-//Calculate negative ideals
-vector<float> negativeIdeal(const vector<vector<float>>&matrix, const vector<float>&weights){
-
-    int columns = matrix[0].size();
-    vector<float> ideal(columns, numeric_limits<float>::max());
-
-    for (auto row: matrix){
-
-        for (int j = 0; j < columns; j++){
-
-            ideal[j] = min(ideal[j],row[j]);
-
-        }
-
-    }
-
-    return ideal;
-
-}
-
-//Find Euclidean Distance between positive and negative ideals
-vector<float> euclideanDistance(const vector<vector<float>>&matrix, const vector<float> &ideal){
-
-    int rows = matrix.size();
-    vector<float> distances(rows, 0);
-
-    for (int i = 0; i < rows; i++){
-
-        for (int j = 0; j < ideal.size(); j++){
-
-            distances[i] += (matrix[i][j] - ideal[j]) * (matrix[i][j] - ideal[j]);
-
-        }
-
-        distances[i] = sqrt(distances[i]);
-        
-    }
-
-    return distances;
-
-}
-
-//Find relativep proximityo of networks to positive and negative ideals
-vector<float> relativeProxmity(const vector<float> &eDistancePositiveIdeal, const vector<float> &eDistanceNegativeIdeal){
-
-    int size = eDistancePositiveIdeal.size();
-    vector<float> coefficents(size);
-
-    for (int i = 0; i < size; i++){
-
-        coefficents[i] = eDistanceNegativeIdeal[i] / (eDistancePositiveIdeal[i] + eDistanceNegativeIdeal[i]);
-
-    }
-
-    return coefficents;
-
-}
-
-//Find ideal network
-int idealNetwork(const vector<float>&proximity){
-
-    return distance(proximity.begin(), max_element(proximity.begin(), proximity.end()));
-
-}
-
 int main(){
 
-    int n = 3; // # of networks
-    int m = 6; // # of attributes
+    AHP a; // AHP class
+    TOPSIS t; // TOPSIS class
+    ifstream file("networks.txt");
+    string text; // Line from input files
+    char c; // Char from input files
+    int n;// # of networks
+    int m; // # of attributes
+    float num; // Entry value
+
+    getline(file,text); // Get # of networks
+    n = stoi(text);
+
+    getline(file,text); // Get # of attributes
+    m  = stoi(text);
 
     // 1: Create decision matrix (rssi, dist, sinr, speed, load , bandwith)
-    vector<vector<float>> dMatrix = {
+    vector<vector<float>> dMatrix(n, vector<float> (m));
 
-        {9, 7, 1, 2, 5, 2},
-        {11, 3, 5, 7, 0, 3},
-        {6, 5, 4, 6, 15, 8},
+    for (int i = 0; i < n; i++){
        
-    };
+        for (int j = 0; j < m; j++){
+
+            getline(file, text, ',');   
+            num = stof(text);
+            dMatrix[i].insert(dMatrix[i].begin() + j, num);
+           
+
+        }
+
+    }
+
+    dMatrix.resize(n);
+
+    for (int i = 0; i < n; i++){
+
+        dMatrix[i].resize(m);
+
+    }
+
+    file.close();
 
     // 2: Normalize decision matrix
-    vector<vector<float>> nMatrix = normalize(dMatrix);
+    vector<vector<float>> nMatrix = a.normalize(dMatrix);
 
     // AHP
     // 3: Create pairwise comparison matrix from Saaty's scale (6 attributes = 6x6)
-    vector<vector<float>> ahpMatrix = {
+    ifstream file2("ahp.txt");
+    vector<vector<float>> ahpMatrix(m, vector<float> (m));
 
-        {1, 3, 7, 4, 2, 9},
-        {1/(float)3, 1, 6, 5, 3, 3},
-        {1/(float)7, 1/(float)6, 1, 4, 8, 9},
-        {1/(float)4, 1/(float)5, 1/(float)4, 1, 2 ,7 },
-        {1/(float)2, 1/(float)3, 1/(float)8, 1/(float)2, 1, 2},
-        {1/(float)9, 1/(float)3, 1/(float)9, 1/(float)7, 1/(float)2, 1}
+    for (int i = 0; i < m; i++){
+       
+        for (int j = 0; j < m; j++){
 
-    };
+            getline(file2, text, ',');   
+            num = stof(text);
+            ahpMatrix[i].insert(ahpMatrix[i].begin() + j, num);
+           
+
+        }
+
+    }
+
+    ahpMatrix.resize(m);
+
+    for (int i = 0; i < m; i++){
+
+        ahpMatrix[i].resize(m);
+
+    }
+
+    file2.close();
 
     // 4: Normalize pairwise matrix
-    vector<vector<float>> ahpNMatrix = normalizeAHP(ahpMatrix);
+    vector<vector<float>> ahpNMatrix = a.normalizeAHP(ahpMatrix);
 
     // 5: Compute weights
-    vector<float> weights = computeWeights(ahpNMatrix, m);
+    vector<float> weights = a.computeWeights(ahpNMatrix, m);
 
     // TOPSIS
     // 6: Created weighted normalized decision matrix
-    vector<vector<float>> wMatrix = weightMatrix(nMatrix, weights);
+    vector<vector<float>> wMatrix = t.weightMatrix(nMatrix, weights);
 
     // 7: Determine positive and negative ideal
-    vector<float> pIdeal = positiveIdeal(wMatrix, weights);
-    vector<float> nIdeal = negativeIdeal(wMatrix, weights);
+    vector<float> pIdeal = t.positiveIdeal(wMatrix, weights);
+    vector<float> nIdeal = t.negativeIdeal(wMatrix, weights);
 
     // 8: Compute Euclidean distance from network to positive/negative ideal
-    vector<float> edPositiveIdeal = euclideanDistance(wMatrix, pIdeal);
-    vector<float> edNegativeIdeal = euclideanDistance(wMatrix, nIdeal);
+    vector<float> edPositiveIdeal = t.euclideanDistance(wMatrix, pIdeal);
+    vector<float> edNegativeIdeal = t.euclideanDistance(wMatrix, nIdeal);
     
     // 9: Compute relative proximity to ideal
-    vector<float> rProximity = relativeProxmity(edPositiveIdeal, edNegativeIdeal);
+    vector<float> rProximity = t.relativeProxmity(edPositiveIdeal, edNegativeIdeal);
 
     // 10: Select ideal network
-    int bestNetwork = idealNetwork(rProximity);
+    int bestNetwork = t.idealNetwork(rProximity);
 
     // 11: Display proximities and best solution
 
